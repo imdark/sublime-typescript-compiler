@@ -1,6 +1,6 @@
-# Sublime Text 2 plugin: TypeScript Compiler
+# Sublime Text 2/3 plugin: TypeScript Compiler
 
-TypeScript compiler integrated into Sublime Text 2. You can compile fragment or whole .ts file into a new plain JavaScript. 
+TypeScript compiler integrated into Sublime Text 2/3. You can compile fragment or whole .ts file into a new plain JavaScript. 
 
 Developed for JavaScript prototyping in mind.
 
@@ -29,10 +29,10 @@ Default configuration, you can find in the Sublime preference menu (Preferences/
 
 You can change it in according to your operating system.
 
-Typical exemple for windows users:
+Typical exemple for windows users (where User_Name is the login of the user installing type script):
 ```json
 {
     "node_path"       : "C:\\Program Files\\nodejs\\node.exe",
-    "typescript_path" : "C:\\Users\\User_Name\\AppData\\Roaming\\npm\\node_modules\\typescript\\bin\\tsc"
+    "typescript_path" : "C:\\Users\\User_Name\\node_modules\\typescript\\bin\\tsc.js"
 }
 ```
