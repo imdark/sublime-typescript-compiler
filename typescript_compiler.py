@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Author: Guido D'Albore
-# Version: 0.1.1
+# Added support for Sublime Text 3: Michael Kris
+# Version: 0.1.2
 # Official Repository: https://github.com/setumiami/sublime-typescript-compiler
 # CommandThread class is based on Git sublime package (https://github.com/kemayo/sublime-text-2-git)
 
@@ -58,8 +59,8 @@ class TypescriptCommand(sublime_plugin.TextCommand):
             # File doesn't exist on disk, it will be created in temp directory
 
             # Create TypeScript source file
-            f = tempfile.NamedTemporaryFile(prefix = 'tsc_', suffix = '.ts', delete = False)
-            self.sourcefile = f
+            f = tempfile.NamedTemporaryFile(mode='w+b', prefix = 'tsc_', suffix = '.ts', delete = False)
+            self.sourcefile = f.file
             self.sourcefile.write(source)
             self.sourcefile.close()
             self.sourcefilename = self.sourcefile.name;
@@ -67,24 +68,23 @@ class TypescriptCommand(sublime_plugin.TextCommand):
 
             # Create JavaScript destination file
             f = tempfile.NamedTemporaryFile(prefix = 'tsc_', suffix = '.js', delete = False)
-            self.destinationfile = f
-            #self.destinationfile.write(source)
+            self.destinationfile = f.file
+            # self.destinationfile.write(source)
             self.destinationfile.close()
             self.destinationfilename = self.destinationfile.name
 
         self.workingdir = os.path.split(self.sourcefilename)[0]
 
         if(DEBUG):
-            print "  - Source TypeScript file: %s" % self.sourcefilename
-            print "  - Destination plain JavaScript file: %s" % self.destinationfilename
-            print "  - Working directory: %s" % self.workingdir
+            print( "  - Source TypeScript file: %s" % self.sourcefilename)
+            print( "  - Destination plain JavaScript file: %s" % self.destinationfilename)
+            print( "  - Working directory: %s" % self.workingdir)
 
         commandline = [ self.node_path,
                         self.typescript_path,
                         '--out',
                         self.destinationfilename,
                         self.sourcefilename];
-
         command = CommandThread(commandline, self.onDone, self.workingdir)
         command.start()
 
@@ -107,9 +107,9 @@ class TypescriptCommand(sublime_plugin.TextCommand):
             w = self.view.window()
             w.new_file()
             w.active_view().set_read_only(False)
-            edit = w.active_view().begin_edit()
-            w.active_view().insert(edit, w.active_view().size(), result)
-            w.active_view().end_edit(edit)
+            # edit = w.active_view().begin_edit()
+            w.active_view().run_command('append', {'characters': result})
+            # w.active_view().end_edit(edit)
             w.active_view().set_read_only(True)
         else:
             sublime.active_window().open_file(self.destinationfilename)
@@ -171,12 +171,15 @@ class CommandThread(threading.Thread):
                     output = ''
                 # if sublime's python gets bumped to 2.7 we can just do:
                 # output = subprocess.check_output(self.command)
-                main_thread(self.on_done,
-                    _make_text_safeish(output, self.fallback_encoding), **self.kwargs)
+                
+                main_thread(self.on_done, output, **self.kwargs)
 
-        except subprocess.CalledProcessError, e:
-            main_thread(self.on_done, e.returncode)
-        except OSError, e:
+                # main_thread(self.on_done,
+                #     _make_text_safeish(output, self.fallback_encoding), **self.kwargs)
+
+        except subprocess.CalledProcessError as e:
+            main_thread(self.on_done, str(e))
+        except OSError as e:
             if e.errno == 2:
                 main_thread(sublime.error_message, "Node.js or TypeScript Complier (tsc) binary could not be found in PATH\n\nPATH is: %s" % os.environ['PATH'])
             else:
